@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html>
+<!--
+This is an example app that demonstrates how to communicate over BLE
+(Bluetooth Low Energy) to read button press status and control LED's.
+-->
+<head>
+
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, user-scalable=no,
+		shrink-to-fit=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
+
+	<title>emergency hero</title>
+	<!-- <meta http-equiv="refresh" content="1" > -->
+
+	<style>
+		@import 'ui/css/evothings-app.css';
+		/* #connect {
+    float: left;
+}
+
+#disconnect {
+    float: right;
+    display: none;
+} */
+	canvas {
+	padding: 7px;
+
+	border-radius: 4px;
+	border: none;
+
+	background-color: gray; /* Default color: "Arctic" */
+}
+
+h3 {
+    font-size:0.5em;
+}
+h4 {
+    font-size:0.5em;
+}
+div2 {
+	font-size:0.5em;
+
+}
+	</style>
+
+	<script>
+	// Redirect console.log to Evothings Workbench.
+	if (window.hyper && window.hyper.log) { console.log = hyper.log }
+	</script>
+
+	<script src="cordova.js"></script>
+	<script src="libs/jquery/jquery.js"></script>
+	<script src="libs/evothings/evothings.js"></script>
+	<script src="libs/evothings/ui/ui.js"></script>
+	<script src="libs/evothings/nordic-nRF51-ble/nordic-nRF51-ble.js"></script>
+	<script src="libs/evothings/easyble/easyble.js"></script>
+	 <script src="http://localhost:8080/socket.io/socket.io.js"></script>
+	 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+<!-- 	<script src="server.js"></script> -->
+	<!-- <script src="connect.js"></script>
+	<script src="rangeSlider.js"></script>
+	<script src="libs/evothings/easyble/easyble.js"></script> -->
+	<!-- <script src="libs/jquery/call.js"></script> -->
+	<!-- <script src="node.js"></script> -->
+	<!-- <script src="require.js"></script> -->
+
+
+</head>
+<input id='sms_message' type='button' onclick="location.href = 'http://localhost:1339/test'" value="sms_message"/>
+
+
+<body ontouchstart="">
+
+	</header> 
+	<body onLoad="refreshDiv()">
+		<div>
+				
+				<div2 id="alert"></div2>
+				
+		</div>
+	</body>
+
+	<body onLoad="refreshDiv()">
+		<div>
+				
+				<div2 id="avg"></div2>
+				
+		</div>
+	</body>
+
+	<body onLoad="refreshDiv()">
+		<div>
+				
+				<div2 id="avg_temm"></div2>
+				
+		</div>
+	</body>
+
+	<h1>emergency hero</h1>
+	<!-- <button class="yellow wide" onclick="location.href = 'http://localhost:1339/test'"></button> -->
+	<!-- <div id="connexion">
+		<button id="connect">Connect</button>
+		<button id="disconnect">Disconnect</button>
+	</div> -->
+	
+	<!-- <ul id="roomList" class="dynamic"></ul> -->
+	<button class="yellow wide" onclick="app.connectToBluefruit(app.readServices)">CONNECT</button>
+<button class="red wide" onclick="app.disconnect()">DISCONNECT</button>
+	
+	<!-- <button id="button-connect" onclick="app.connectBtn()">CONNECT</button> -->
+
+	<!-- <img src="nRF51-DK.jpg" style="max-height:20%;" /> -->
+
+	<!-- <p id="info">initializing software</p>
+
+	<button id="button-connect" class="blue wide"
+		onclick="app.connectOrDisconnect()">CONNECT</button> -->
+
+		<body>
+			<div>
+				<h2>Heart Rate</h2>
+				<body onLoad="refreshDiv()">
+					<div>
+							
+							<div2 id="beatsPerMinute"></div2>
+					</div>
+				</body>
+			
+			
+				 <!-- <canvas id="canvas" width="10" height="10"></canvas>  -->
+				<h4>history:</h4>
+				<!-- <button id="button-connect" onclick="app.connectBtn()">CONNECT</button> -->
+			
+							
+						<canvas id="canvas" width="300" height="200"></canvas>
+				
+				<!-- <canvas id="canvas" width="300" height="200"></canvas> -->
+			</div>
+			<!-- <img src="https://electronut.in/wp-content/uploads/2016/06/nrf51-thingspeak.png" style="max-height:20%;" /> -->
+	    
+		</body>
+
+		<body>
+			<div>
+				<h2>body temperature</h2>
+				<body onLoad="refreshDiv()">
+					<div>
+							
+							<div2 id="temperature_auto"></div2>
+					</div>
+				</body>
+				<!-- <canvas id="canvas" width="10" height="10"></canvas> -->
+				<h4>history:</h4>
+				<!-- <button id="button-connect" onclick="app.connectBtn()">CONNECT</button> -->
+			</div>
+			<canvas id="canvas_tem" width="300" height="200"></canvas>
+			<!-- <canvas id="canvas" width="600" height="200"></canvas> -->
+			<!-- <img src="https://electronut.in/wp-content/uploads/2016/06/nrf51-thingspeak.png" style="max-height:20%;" /> -->
+		</body>
+		<body>
+			<div>
+				<h3>hazard level</h3>
+				 <body onLoad="refreshDiv()">
+					<div>
+							
+							<div2 id="hazard_lev"></div2>
+					</div>
+				</body>
+			
+				<h4>history:</h4> 
+			
+			</div>
+			<!-- <canvas id="canvas" width="600" height="200"></canvas> -->
+			<canvas id="canvas_haz" width="300" height="200"></canvas>
+	
+		</body>
+	
+	<br />
+
+	<!-- <button class="green quarter" onclick="app.ledOn(0)">LED1 ON</button>
+	<button class="green quarter" onclick="app.ledOn(1)">LED2 ON</button>
+	<button class="green quarter" onclick="app.ledOn(2)">LED3 ON</button>
+	<button class="green quarter" onclick="app.ledOn(3)">LED4 ON</button>
+
+	<button class="red quarter" onclick="app.ledOff(0)">LED1 OFF</button>
+	<button class="red quarter" onclick="app.ledOff(1)">LED2 OFF</button>
+	<button class="red quarter" onclick="app.ledOff(2)">LED3 OFF</button>
+	<button class="red quarter" onclick="app.ledOff(3)">LED4 OFF</button>
+
+	<button id="button-state" class="black wide">BUTTON STATE: 0</button>
+
+	<p id="data">Not connected to the nRF51-DK</p> -->
+
+	<script>
+
+	// Short name for nRF51-DK BLE library.
+  //      socket = io.connect('http://localhost:1339/test' , {'force new connection':true});
+  // socket.on('event', function(){
+  //   console.log("success");
+  // });
+
+    var socket = io.connect('http://localhost:1337');
+  socket.on('news', function (data) {
+    console.log(data);
+    socket.emit('my other event', { my: 'data' });
+  });
+    
+  // socket.on('connect', function(){});
+  // socket.on('event', function(data){});
+  // socket.on('disconnect', function(){});
+	var nRF51_ble = evothings.nRF51_ble;
+	var led_state = 0; // we need to store the state to turn on/off LED's
+  var count = 0;
+	// Application object.
+//	app.temperature = [];
+	var app = {};
+	app.heartRate = 0;
+	app.temperature=0;
+	app.hazard=0;
+//	console.log(app.temperature);
+	// Connected device.
+	app.device = null;
+	var dataPoints=[];
+	var dataPoints_tem=[];
+	var dataPoints_haz=[];
+//	app.temperature = [1,2];
+  app.inner_hazard=0;
+	var avg_heart=[];
+	var avg_tem=[];
+  //app.heartRate = Math.floor((Math.random() * 100) + 80);
+	var BluefruitUART = null; // Object holding the BLE device
+	var BLEDevice = {}; // Object holding Bluefruit BLE device information
+
+	BLEDevice.name = 'Adafruit Bluefruit LE'; // Bluefruit name
+	BLEDevice.services = ['6e400001-b5a3-f393-e0a9-e50e24dcca9e']; // Bluefruit services UUID
+	BLEDevice.writeCharacteristicUUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // Bluefruit writeCharacteristic UUID
+
+	app.connectToBluefruit = function(callback) // Connect to Bluefruit device
+	{
+		evothings.easyble.startScan // Start scanning
+		(
+				function(device)
+				{
+					console.log('Scan started');
+					if (device.name == BLEDevice.name) // If device name correspond to Bluefruit device name
+					{
+						evothings.easyble.stopScan(); // Stop the scan
+						BluefruitUART = device; // Store the Bluefruit device
+
+						console.log('Adafruit Bluefruit LE UART found !');
+
+						BluefruitUART.connect // Connect to Bluefruit device
+						(
+								function(device)
+								{
+									console.log('Connected to BLE device ' + BluefruitUART.name);
+									callback();
+								},
+								function(errorCode)
+								{
+									console.log('Failed to connect to BLE device: ' + errorCode);
+								}
+						)
+					}
+				},
+				function(errorString)
+				{
+					console.log('Error while scanning: ' + errorString);
+				}
+		);
+	};
+
+	app.disconnect = function() // Disconnect from Bluefruit device
+	{
+		evothings.easyble.stopScan();
+		BluefruitUART.close();
+		console.log('Disconnected from BLE device ' + BluefruitUART.name);
+	};
+
+	app.readServices = function() // Read services from Bluefruit device
+	{
+		BluefruitUART.readServices
+		(
+				BLEDevice.services,
+				function(device)
+				{
+					console.log('BLE services available for device ' + BluefruitUART.name);
+					console.log(BLEDevice.services);
+					// console.log(message);
+					// console.log(data);
+				},
+				function(errorString)
+				{
+					console.log('BLE services error: ' + errorString);
+				}
+		)
+	};
+
+	app.sendMessage = function(message) // Send a message to Bluefruit device
+	{
+		var data = evothings.ble.toUtf8(message);
+		BluefruitUART.writeCharacteristic
+		(
+				BLEDevice.writeCharacteristicUUID,
+				data,
+				function()
+				{
+					console.log('Sent: ' + message);
+				},
+				function(errorString)
+				{
+					console.log('BLE writeCharacteristic error: ' + errorString);
+				}
+		)
+	};
+
+	
+   beatsPerMinute.innerHTML = app.heartRate;
+	
+
+ // temperature.innerHTML = 35;
+//your stuff to refresh your divs here (ajax requests...)
+//hazard.innerHTML = 0;
+
+// $('#buttons').on('click', function(e) {
+
+//var urlTS = 'http://localhost:1339/test';
+
+// $(document).ready(function(){
+//        //Make ajax call to fetch d
+//  $.ajax({
+//  type: 'GET',
+//  url: 'http://localhost:1339/test',
+//  success: function(response) { 
+//   console.log(response);
+//  },
+//  error: function(xhr, status, err) {
+//    console.log(xhr.responseText);
+//  }
+// });
+
+// });
+
+// });
+
+
+
+//app.sendsmsmessage();
+  // $.ajax({
+  //   type: 'POST',
+  //   url: 'http://localhost:1339/test',
+  //   data: {
+  //     "To": "+13179799311",
+  //     "From": "+13177076361",
+  //     "Body": "Hello from Twilio!"
+  //   },
+  //   // beforeSend: function(xhr) {
+      
+  //   // },
+  //   success: window.location = "http://localhost:1339/test"
+  //   //   console.log(data);
+  //   // },
+  //   // error: function(data) {
+  //   //   console.log(data);
+  //   // }
+  // });
+
+
+ 
+app.plot = function(heartRate) {
+
+var canvas = document.getElementById('canvas');
+var context = canvas.getContext('2d');
+//var dataPoints = [];
+var maxLen = 50;
+heartRate=app.heartRate;
+// add data
+
+
+//dataPoints.push(app.heartRate);
+
+//dataPoints.push(Math.floor((Math.random() * 100) + 80));
+//console.log(dataPoints);
+// cap length
+if (dataPoints.length > maxLen) {
+	// remove first
+	//console.log(dataPoints.length);
+	dataPoints.splice(0, 1);
+}
+//console.log(dataPoints.length);
+// maximum value
+var maxVal = 400;
+
+function drawPoints(color)
+{
+	// draw dots
+	context.fillStyle = color;
+	context.strokeStyle = color;
+	var x = 0;
+	for (var i = dataPoints.length-1; i> 0; i--) {
+		context.beginPath();
+		var y = canvas.height - (dataPoints[i] * canvas.height) / maxVal;
+		context.arc(x, y, 4, 0, 2 * Math.PI);
+		context.fill();
+		x += 10;
+	}
+}
+
+// clear previous
+context.clearRect(0, 0, canvas.width, canvas.height);
+
+drawPoints("green");
+};
+
+//app.plot(app.heartRate);
+app.plot_tem= function(heartRate) {
+
+var canvas = document.getElementById('canvas_tem');
+var context = canvas.getContext('2d');
+//var dataPoints = [];
+var maxLen = 50;
+//heartRate=app.heartRate;
+// add data
+
+//console.log(dataPoints_tem);
+//dataPoints.push(app.heartRate);
+
+//dataPoints.push(Math.floor((Math.random() * 100) + 80));
+//console.log(dataPoints_tem);
+// cap length
+if (dataPoints_tem.length > maxLen) {
+	// remove first
+	//console.log(dataPoints.length);
+	dataPoints_tem.splice(0, 1);
+}
+//console.log(dataPoints_tem.length);
+// maximum value
+var maxVal = 200;
+
+function drawPoints(color)
+{
+	// draw dots
+	context.fillStyle = color;
+	context.strokeStyle = color;
+	var x = 0;
+	for (var i = dataPoints_tem.length-1; i> 0; i--) {
+		context.beginPath();
+		var y = canvas.height - (dataPoints_tem[i] * canvas.height) / maxVal;
+		context.arc(x, y, 4, 0, 2 * Math.PI);
+		context.fill();
+		x += 10;
+	}
+}
+
+// clear previous
+context.clearRect(0, 0, canvas.width, canvas.height);
+
+drawPoints("black");
+};
+
+app.plot_haz= function(heartRate) {
+
+var canvas = document.getElementById('canvas_haz');
+var context = canvas.getContext('2d');
+//var dataPoints = [];
+var maxLen = 50;
+//heartRate=app.heartRate;
+// add data
+
+//console.log(dataPoints_haz);
+//dataPoints.push(app.heartRate);
+
+//dataPoints.push(Math.floor((Math.random() * 100) + 80));
+//console.log(dataPoints_tem);
+// cap length
+if (dataPoints_haz.length > maxLen) {
+	// remove first
+	//console.log(dataPoints.length);
+	dataPoints_haz.splice(0, 1);
+}
+//console.log(dataPoints_tem.length);
+// maximum value
+var maxVal = 30;
+
+function drawPoints(color)
+{
+	// draw dots
+	context.fillStyle = color;
+	context.strokeStyle = color;
+	var x = 0;
+	for (var i = dataPoints_haz.length-1; i> 0; i--) {
+		context.beginPath();
+		var y = canvas.height - (dataPoints_haz[i] * canvas.height) / maxVal;
+		context.arc(x, y, 4, 0, 2 * Math.PI);
+		context.fill();
+		x += 10;
+	}
+}
+
+// clear previous
+context.clearRect(0, 5, canvas.width, canvas.height);
+
+drawPoints("red");
+};
+
+//app.refresh();
+	var sum=0;
+	var sum_tem=0;
+var gIndex = 1;
+function refreshDiv(){
+	app.inner_hazard=0;
+	var avg_heart_value=0;
+	var avg_tem_value=0;
+		app.heartRate= Math.floor((Math.random() * 21) + 120);
+		app.temperature= Math.floor((Math.random() * 11) + 30);
+		app.hazard=Math.floor((Math.random() * 0) + 0);
+		document.getElementById('beatsPerMinute').innerHTML = app.heartRate;
+		document.getElementById('temperature_auto').innerHTML = app.temperature;
+		document.getElementById('hazard_lev').innerHTML = app.hazard;
+		document.getElementById('alert').innerHTML = "good status";
+		console.log(app.heartRate);
+		avg_heart.push(app.heartRate);
+//app.sendsmsmessage();
+		//document.getElementById('sms_message').click();
+	//	console.log(avg_heart);
+		for (var i = avg_heart.length-1; i< avg_heart.length; i++) 
+		{
+       sum+= avg_heart[i];
+
+		}
+	//	console.log(sum);
+		avg_heart_value= sum/avg_heart.length;
+	 console.log(avg_heart_value);
+		if(app.heartRate > avg_heart_value +5 )
+		{
+			document.getElementById('avg').innerHTML = "heart rate exceed average ";
+		}
+		else if (app.heartRate < avg_heart_value -5)
+		{
+			document.getElementById('avg').innerHTML = "heart rate is lower than average ";
+		}
+		else
+		{
+			document.getElementById('avg').innerHTML = "heart rate good on average ";
+		}
+   
+
+		avg_tem.push(app.temperature);
+	//	console.log(avg_heart);
+		for (var p = avg_tem.length-1; p< avg_tem.length; p++) 
+		{
+       sum_tem+= avg_tem[p];
+
+		}
+	//	console.log(sum);
+		avg_tem_value= sum_tem/avg_tem.length;
+	//	console.log(avg_heart_value);
+		if(app.temperature > avg_tem_value +3 )
+		{
+			document.getElementById('avg_temm').innerHTML = "temperature exceed average ";
+		}
+		else if (app.temperature< avg_tem_value -3)
+		{
+			document.getElementById('avg_temm').innerHTML = "temperature is lower than average ";
+		}
+		else
+		{
+			document.getElementById('avg_temm').innerHTML = "temperature good on average ";
+		}
+
+
+
+
+
+		
+		if (app.temperature > 38)
+		{
+			app.inner_hazard=1;
+			// console.log("hazard level 2: temperature alert message sent")
+			// document.getElementById('alert').innerHTML = "hazard level 2: temperature";
+		}
+		if (app.heartRate > 118)
+		{
+			// console.log("hazard level 2: heart rate alert message sent")
+			// document.getElementById('alert').innerHTML = "hazard level 2: heart rate";
+		 app.inner_hazard=2;
+		}
+		if (app.heartRate > 118 )
+		{
+			if(app.temperature>38)
+			{
+			app.inner_hazard=3;
+			}
+
+		}
+		if (app.inner_hazard<app.hazard )
+		{
+	    app.inner_hazard=app.hazard;
+		}
+
+		console.log('heart rate:'+ app.heartRate);
+		console.log('temperature:'+app.temperature);
+		console.log('hazard:'+app.hazard);
+		console.log('final hazard:'+app.inner_hazard);
+		if(app.inner_hazard==0 )
+		{
+		//	console.log("good status")
+			document.getElementById('alert').innerHTML = "good status";
+		}
+		else if (app.inner_hazard==1 )
+		{		
+				//console.log("hazard level 1: temperature alert message sent");
+			  document.getElementById('alert').innerHTML = "hazard level 1: not feeling good";
+		}
+		else if(app.inner_hazard==2 )
+		{
+			//console.log("hazard level 2: heart rate alert message sent");
+			  document.getElementById('alert').innerHTML = "hazard level 2: sending message to relatives";
+			  document.getElementById('sms_message').click();
+		}
+		else if(app.inner_hazard==3 )
+		{
+			//console.log("hazard level 3: heart rate and temperature alert call to relatives");
+			  document.getElementById('alert').innerHTML = "hazard level 3: calling relatives";
+		}
+		else if(app.inner_hazard==4 )
+		{
+			//console.log("hazard level 4: emergencyc 911 alert calling");
+			  document.getElementById('alert').innerHTML = "hazard level 4: calling 911";
+		}
+  
+
+		dataPoints.push(app.heartRate);
+		app.plot(app.heartRate);
+
+	//	console.log(dataPoints);
+		dataPoints_tem.push(app.temperature);
+		//console.log(dataPoints_tem.length);
+		app.plot_tem(app.temperature);
+
+		dataPoints_haz.push(app.hazard);
+		//console.log(dataPoints_haz);
+		app.plot_haz(app.hazard);
+//dataPoints.push(Math.floor((Math.random() * 100) + 80));
+		//console.log(dataPoints.length);
+		app.update();
+		//app.sendsmsmessage();
+    var refresher = setTimeout("refreshDiv()", 10000);
+}
+//console.log =("dsd");
+function refreshDiv_tem(){
+	app.temperature= Math.floor((Math.random() * 11) + 30);
+//	console.log('fdf',app.temperature);
+		document.getElementById('temperature_auto').innerHTML = app.temperature;
+		dataPoints_tem.push(app.temperature);
+    app.plot_tem(app.temperature);
+//dataPoints.push(Math.floor((Math.random() * 100) + 80));
+    //console.log(dataPoints.length);
+    var refresher = setTimeout("refreshDiv_tem()", 10000);
+}
+// function refreshDivv(){
+//     document.getElementById('canvas').innerHTML;
+//     var refresher = setTimeout("refreshDiv()", 1000);
+// }
+// $(document).ready( function()
+// {
+//   // canvas resize callback
+//   resizeCanvas = function () {
+//     var canvas = $('#canvas');
+//     var container = $(canvas).parent();
+//     canvas.attr('width', $(container).width() ); // Max width
+//   };
+
+//   // Adjust canvas size when browser resizes
+//   $(window).resize( resizeCanvas );
+
+//   // Adjust the canvas size when the document has loaded.
+//   resizeCanvas();
+// })
+	// Turn on LED.
+// 	$(document).ready( function()
+// {
+	// AJAX callback
+  function onDataReceived(jsonData) {
+   // app.status("Thingspeak post: " + JSON.stringify(jsonData));
+  }
+  // AJAX error handler
+  function onError(){
+    //app.status("Ajax error!");
+  }
+	// get data from server
+  app.getData_heart_rate=function() {
+   
+      // prepare thingspeak URL
+			// set up a thingspeak channel and change the write key below
+			//console.log("aaaa");
+      var key = 'QL85I1SLSY2OEIKH'
+			var urlTS = 'https://api.thingspeak.com/update?api_key=' + key + '&field1=' + app.heartRate;
+		
+			// make the AJAX call
+			//console.log("fdfdfaaa");
+      $.ajax({
+        url: urlTS,
+        type: "GET",
+        dataType: "json",
+        success: onDataReceived,
+        error: onError
+			});
+
+    
+	}
+	app.getData_temperature=function() {
+   
+	 // prepare thingspeak URL
+	 // set up a thingspeak channel and change the write key below
+	 //console.log("aaaa");
+	 var key = 'QL85I1SLSY2OEIKH'
+	 var urlTS = 'https://api.thingspeak.com/update?api_key=' + key + '&field1=' + app.temperature;
+ 
+	 // make the AJAX call
+	 //console.log("fdfdfaaa");
+	 $.ajax({
+		 url: urlTS,
+		 type: "GET",
+		 dataType: "json",
+		 success: onDataReceived,
+		 error: onError
+	 });
+
+ 
+}
+	
+app.getData_hazard=function() {
+   
+	 // prepare thingspeak URL
+	 // set up a thingspeak channel and change the write key below
+	 //console.log("aaaa");
+	 var key = 'QL85I1SLSY2OEIKH'
+	 var urlTS = 'https://api.thingspeak.com/update?api_key=' + key + '&field1=' + app.hazard;
+ 
+	 // make the AJAX call
+	 //console.log("fdfdfaaa");
+	 $.ajax({
+		 url: urlTS,
+		 type: "GET",
+		 dataType: "json",
+		 success: onDataReceived,
+		 error: onError
+	 });
+
+ 
+}
+  // define an update function
+  var count = 0;
+  app.update=function() {
+		// get data
+	//	console.log("fdfdf");
+		app.getData_heart_rate();
+		// app.getData_temperature();
+		// app.getData_hazard();
+    // set timeout - thingspeak can only update every 15 seconds
+    setTimeout(app.update, 3000);
+  }
+     // call update
+  //update();
+
+// });
+	app.ledOn = function(num)
+	{
+		led_state |= (1 << num);
+		app.device &&
+		app.device.writeDataArray(new Uint8Array([led_state]));
+	};
+
+	// Turn off LED.
+	app.ledOff = function(num)
+	{
+		led_state &= ~(1 << num);
+		app.device &&
+		app.device.writeDataArray(new Uint8Array([led_state]));
+	};
+
+	app.showMessage = function(info)
+	{
+		$('#info').html(info);
+	};
+
+	app.showData = function(data)
+	{
+		$('#data').html(data);
+	};
+
+	// Called when BLE and other native functions are available.
+	app.onDeviceReady = function()
+	{
+		app.showMessage('Press the CONNECT button to scan and connect with the nRF51-DK');
+	};
+
+	app.connectOrDisconnect = function()
+	{
+		if (app.device == null)
+		{
+			app.connect();
+
+			$('#button-connect').html('SCANNING');
+		}
+		else
+		{
+			nRF51_ble.close();
+
+			app.device = null;
+			app.showMessage('Press the CONNECT button to scan and connect with the nRF51-DK');
+			app.showData('Not connected to the nRF51-DK')
+			$('#button-connect').html('CONNECT');
+		}
+	};
+
+	app.connect = function()
+	{
+		app.showMessage('Scanning for the nRF51-DK');
+
+		nRF51_ble.connect(
+	     	'nRF51-DK', // BLE name
+			function(device)
+			{
+				app.device = device;
+				app.showMessage('Connected to the nRF51-DK');
+				app.showData('Press the physical buttons on the nRF51-DK and control the LEDs above');
+				$('#button-connect').html('DISCONNECT');
+
+				device.setNotification(function(data)
+				{
+					$('#button-state').html('BUTTON STATE: ' +new Uint8Array(data)[0]);
+				});
+			},
+			function(errorCode)
+			{
+				app.device = null;
+				app.showMessage('Press the CONNECT button to scan and connect with the nRF51-DK');
+				app.showData('Unable to connect to the nRF51-DK - error: ' + errorCode);
+				$('#button-connect').html('CONNECT');
+			});
+	};
+
+	document.addEventListener(
+		'deviceready',
+		function() { evothings.scriptsLoaded(app.onDeviceReady) },
+		false);
+
+app.connectBtn = function()
+{
+  if (!app.connected)
+  {
+    app.scan();
+
+    $('#button-connect').html('SCANNING');
+  }
+  else
+  {
+
+    ble.disconnect(app.peripheral.id,
+      // on disconnect
+      function() {
+        console.log("disconnected.");
+        // set button text
+        $('#button-connect').html('CONNECT');
+        // set flag
+        app.connected = false;
+        // set message
+        app.status("Disconnected.");
+      },
+      // on error
+      function(reason) {
+        console.log("disconnect error: " + reason);
+      });
+  }
+};
+
+
+	</script>
+
+</body>
+</html>
